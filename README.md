@@ -1,4 +1,4 @@
-# Hypothesis Developer Docs and Tools
+# Hypothesis Developer Docs & Tools
 
 This repo is a place to put developer docs (coding guidelines and best practices etc) and tools (scripts for automating development tasks etc).
 
