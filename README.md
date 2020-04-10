@@ -8,7 +8,9 @@ We wanted a quick and easy place to collaborate on documentation about our code 
 
 * We wanted it to be public, which rules out [Stack Overflow for Teams](https://stackoverflow.com/c/hypothesis/questions)
 
-* We wanted to be able to send new architecture decisions as **pull requests** so they can be discussed and reviewed before merging. That rules out Stack Overflow for Teams, Google Drive, a GitHub repo's wiki, or anything that's not files within a GitHub repo itself
+* We didn't want these docs to be lost within a sea of other stuff. That rules out GitHub Issues or other places that already have a lot of content in them
+
+* We wanted to be able to send new architecture decisions as **pull requests** so they can be discussed and reviewed before merging. That rules out Stack Overflow for Teams, Google Drive, GitHub Issues, a GitHub repo's wiki, or anything that's not files within a GitHub repo itself
 
 * We wanted contributing to be as quick and easy as possible. Just edit simple Markdown files in your browser using GitHub's web interface (you can use the web interface to either commit directly to master or create a new branch and start a PR). That rules out reStructuredText and Sphinx-based docs like those at https://h.readthedocs.io/ and <https://h.readthedocs.io/projects/client/>, they're simply not convenient enough to contribute to
 
