@@ -11,6 +11,10 @@ Packages are a way of structuring the module namespace within a containing packa
 
 Some packages can be installed and might even be published to the [Python Package Index (PyPI.org)](https://pypi.org/). **This document isn't limited to just installable packages** -- packages and subpackages within a containing package or app are also "packages" for this document's purposes.
 
+## What Is a "Public Interface"?
+
+For the purposes of this document the "public interface" of a class, module or package is all the names that are meant to be used by **code outside of that class, module or package**. The public names could be called by code from other classes, modules or (sub)packages of the same app, or they could be called by third-party frameworks such as Pyramid (for example when Pyramid calls an app's views).
+
 ## Aims
 
 We want an approach to laying out our packages that:
@@ -37,9 +41,7 @@ Our approach is simple:
 
 2. Names that are **not** part of a class, module or (sub)package's public interface **do** have a leading underscore
 
-3. The "public interface" of a class, module or (sub)package means all the names that are meant to be called by **code outside of that package**. The public names could be called by code from other class, modules or (sub)packages of the same app, or they could be called by third-party frameworks such as Pyramid (for example when Pyramid calls an app's views), etc.
-
-4. For example:
+3. For example:
 
    1. **Classes:** public attributes and methods of a class don't have leading underscores. Private attributes and methods within a class do have leading underscores.
    2. **Modules:** public classes, functions and other top-level names within a module don't have leading underscores. Private attributes, methods and names within a module do have leading underscores.
