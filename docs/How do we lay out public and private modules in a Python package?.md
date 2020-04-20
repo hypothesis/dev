@@ -4,24 +4,29 @@ See also:
 
 * [Organization of views package is poor](https://github.com/hypothesis/lms/issues/1245), the original issue that led to this file
 
-## What Is a Python "Package"?
+We have a very simple approach:
 
-For the purposes of this document a "package" is a directory containing an `__init__.py` file and possibly other Python files and packages. A package can be inside another package (in which case it can be called a "subpackage").
-Packages are a way of structuring the module namespace within a containing package or app. See [Packages in the Python tutorial](https://docs.python.org/3/tutorial/modules.html#packages) for more on this definition of package.
+1. A "package" is any directory that contains an `__init__.py` file
 
-Some packages can be installed and might even be published to the [Python Package Index (PyPI.org)](https://pypi.org/). **This document isn't limited to just installable packages** -- packages and subpackages within a containing package or app are also "packages" for this document's purposes.
+2. The "public interface" of a class, module or package is all the names that're used by code outside of that class module or package
 
-## What Is a "Public Interface"?
+   The calling code can be other code within the same app or it can be a third-party framework. For example Pyramid calls our view functions, so the view functions are part of the `<APP>.views` package's public interface.
 
-For the purposes of this document the "public interface" of a class, module or package is all the names that are meant to be used by **code outside of that class, module or package**. The public names could be called by code from other classes, modules or (sub)packages of the same app, or they could be called by third-party frameworks such as Pyramid (for example when Pyramid calls an app's views).
+3. Names that are part of the public interface of a class, module or package don't have leading underscores. Internal names that are not part of a class, module or package's public interface **do** have leading underscores.
+
+   For example:
+
+   1. **Classes:** public attributes and methods of a class don't have leading underscores. Internal attributes and methods within a class do have leading underscores.
+   2. **Modules:** public classes, functions and other top-level names within a module don't have leading underscores. Internal attributes, methods and names within a module do have leading underscores.
+   3. **Packages:** public modules within a package don't have leading underscores on their filenames, e.g. `foo.py`. Internal modules within a package do have leading underscores, e.g. `_foo.py`. Similarly public subpackages have no leading underscore (`bar/`), internal subpackages do have a leading underscore (`_bar/`).
 
 ## Aims
 
-We want an approach to laying out our packages that:
+The above approach:
 
 * Differentiates the public interface (that's meant to be called from outside of the package) from internal code.
 
-  Being able to easily see what is public and what is private encourages better code design and makes the code easier to maintain. You can more easily see what a package is "about" if you can see its public interface and ignore internal code until you need to work on it. If you can see that something is internal, you know that it's not going to be used outside of its package. If you've changed a package's internal code but haven't changed its public interface, you know that you won't have broken any code outside of the package.
+  Being able to easily see what is public and what is internal encourages better code design and makes the code easier to maintain. You can more easily see what a package is "about" if you can see its public interface and ignore internal code until you need to work on it. If you can see that something is internal, you know that it's not going to be used outside of its package. If you've changed a package's internal code but haven't changed its public interface, you know that you won't have broken any code outside of the package.
 
 * Provides a place to put internal close collaborators.
 
@@ -32,28 +37,6 @@ We want an approach to laying out our packages that:
   In the past we've used an `<APP>.util` package to contain "utilities" that don't seem to belong anywhere else. This is a terrible pattern because `<APP>.util` becomes an ill-defined grab-bag of all sorts of random stuff, and because anything in `<APP>.util` looks like it might be used anywhere in the code whereas in fact it's likely only used in one place: localization breaks down. We don't want any more `<APP>.util` packages.
 
   Also in the past we've created local `helpers.py` modules or `helpers/` packages within packages to contain the utils or helpers just for that package. This isn't a good pattern either: it still ends up moving close collaborators away from the code that uses them, splitting functions that should live together in one module into separate modules by forcing the helper into `helpers.py`, or splitting modules that should live side-by-side in one package into separate packages by forcing the helper into a `helpers/` subpackage. It's also just annoying to always have to move everything into "helpers" modules.
-
-## Approach
-
-Our approach is simple:
-
-1. Names that are part of a class, module or (sub)package's public interface don't have a leading underscore
-
-2. Names that are **not** part of a class, module or (sub)package's public interface **do** have a leading underscore
-
-3. For example:
-
-   1. **Classes:** public attributes and methods of a class don't have leading underscores. Private attributes and methods within a class do have leading underscores.
-   2. **Modules:** public classes, functions and other top-level names within a module don't have leading underscores. Private attributes, methods and names within a module do have leading underscores.
-   3. **Packages:** public modules within a package don't have leading underscores on their filenames, e.g. `foo.py`. Private modules within a package do have leading underscores, e.g. `_foo.py`. Similarly a public subpackage would have no leading underscore (`bar/`), a private subpackage would have a leading underscore (`_bar/`).
-
-This approach is inspired by [PEP 8](https://www.python.org/dev/peps/pep-0008/)'s guidelines on [public and internal interfaces](https://www.python.org/dev/peps/pep-0008/#public-and-internal-interfaces), which say:
-
-> Even with `__all__` set appropriately, internal interfaces (packages, modules, classes, functions, attributes or other names) should still be prefixed with a single leading underscore.
-> 
-> An interface is also considered internal if any containing namespace (package, module or class) is considered internal.
-
-(A leading underscore is Python's "weak internal use indicator" both for files and directories, and for names within files.)
 
 ## Types of Package in an App
 
