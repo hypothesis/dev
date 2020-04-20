@@ -13,7 +13,7 @@ Some packages can be installed and might even be published to the [Python Packag
 
 ## Aims
 
-We want an approach to laying out out our packages that:
+We want an approach to laying out our packages that:
 
 * Differentiates the public interface (that's meant to be called from outside of the package) from internal code.
 
@@ -27,7 +27,7 @@ We want an approach to laying out out our packages that:
 
   In the past we've used an `<APP>.util` package to contain "utilities" that don't seem to belong anywhere else. This is a terrible pattern because `<APP>.util` becomes an ill-defined grab-bag of all sorts of random stuff, and because anything in `<APP>.util` looks like it might be used anywhere in the code whereas in fact it's likely only used in one place: localization breaks down. We don't want any more `<APP>.util` packages.
 
-  Also in the past we've created local `helpers.py` modules or `helpers/` packages within packages to contain the utils or helpers just for that package. This isn't a good pattern either: it still ends up moving close collaborators away from the code that uses them, splitting functions that should live together in one module into separate modules by forcing the helper into `helpers.py`, or splitting modules that should live side-by-side in one package into separate packages by forcing the helper into a `helpers/` sub-package. It's also just annoying to always have to move everything into "helpers" modules.
+  Also in the past we've created local `helpers.py` modules or `helpers/` packages within packages to contain the utils or helpers just for that package. This isn't a good pattern either: it still ends up moving close collaborators away from the code that uses them, splitting functions that should live together in one module into separate modules by forcing the helper into `helpers.py`, or splitting modules that should live side-by-side in one package into separate packages by forcing the helper into a `helpers/` subpackage. It's also just annoying to always have to move everything into "helpers" modules.
 
 ## Approach
 
@@ -37,13 +37,13 @@ Our approach is simple:
 
 2. Names that are **not** part of a class, module or (sub)package's public interface **do** have a leading underscore
 
-3. The "public interface" of a class, module or (sub)package means all the names that are meant to be called by **code outside of that package**. The public names could be called by code from other (sub)packages of the same app, or they could be called by third-party frameworks such as Pyramid (for example when Pyramid calls an app's views), etc.
+3. The "public interface" of a class, module or (sub)package means all the names that are meant to be called by **code outside of that package**. The public names could be called by code from other class, modules or (sub)packages of the same app, or they could be called by third-party frameworks such as Pyramid (for example when Pyramid calls an app's views), etc.
 
 4. For example:
 
    1. **Classes:** public attributes and methods of a class don't have leading underscores. Private attributes and methods within a class do have leading underscores.
    2. **Modules:** public classes, functions and other top-level names within a module don't have leading underscores. Private attributes, methods and names within a module do have leading underscores.
-   3. **Packages:** public modules within a package don't have leading underscores on their filenames, e.g. `foo.py`. Private modules within a package do have leading underscore, e.g. `_foo.py`. Similarly a public subpackage would have no leading underscore (`bar/`), a private subpackage would have a leading underscore (`_bar/`).
+   3. **Packages:** public modules within a package don't have leading underscores on their filenames, e.g. `foo.py`. Private modules within a package do have leading underscores, e.g. `_foo.py`. Similarly a public subpackage would have no leading underscore (`bar/`), a private subpackage would have a leading underscore (`_bar/`).
 
 This approach is inspired by [PEP 8](https://www.python.org/dev/peps/pep-0008/)'s guidelines on [public and internal interfaces](https://www.python.org/dev/peps/pep-0008/#public-and-internal-interfaces), which say:
 
@@ -63,15 +63,16 @@ Generally there are three different types of package within an app:
 
    * View classes and view methods are public interface: Pyramid calls our views to get responses to requests
      * Exception views are also public interface: Pyramid calls these too
-   * Custom view predicates (which get used in Pyramid `@view_config`'s) are public interface: Pyramid calls out view predicates to determine whether to call the view or not
+   * Custom view predicates (which get used in Pyramid `@view_config`'s) are public interface: Pyramid calls our view predicates to determine whether to call the view or not
    * Helper functions that the views call are not public interface: these are only called by other code within the same package. They're not directly called by Pyramid
 
    So in the case of an `<APP>.views` package the leading underscores differentiate the views and other things that're registered with Pyramid, from internal helpers. The differentiation helps you to see what views, predicates, etc the app has without being distracted by all their collaborators.
 
 3. Some packages will be a bit of both (1) and (2)
 
-## Exceptio
-* Pyramid [exception views](https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/views.html#custom-exception-views) present a view-specific code layout issue: you'll probably want to put them in an `exceptions.py` file, but `exceptions.py` is the name that we use in all of our packages for the module that contains that package's exception classes. Decision: just put both custom exception classes (if the `views` package has any) and Pyramid exception views both together in `views/exceptions.py` (no leading underscore)
+## Exception Views Module Naming
+
+Pyramid [exception views](https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/views.html#custom-exception-views) present a view-specific code layout issue: you'll probably want to put them in an `exceptions.py` file, but `exceptions.py` is the name that we use in all of our packages for the module that contains that package's exception classes. Decision: just put both custom exception classes (if the `views` package has any) and Pyramid exception views both together in `views/exceptions.py` (no leading underscore)
 
 ## In-module collaborators
 
