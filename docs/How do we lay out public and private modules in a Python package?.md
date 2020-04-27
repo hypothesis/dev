@@ -72,10 +72,10 @@ from pyramid.view import view_config
 
 @view_config(...)
 def foo(request):
-    # Uses _FooHelper.
+    # Uses _FooCollaborator.
     ...
 
-class _FooHelper:
+class _FooCollaborator:
     ...
 ```
 
