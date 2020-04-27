@@ -104,12 +104,11 @@ This is done for convenience:
 
 2. It makes it easier when you want to reorganize the code within the `h.models` package. For example renaming a module, splitting a large module into two smaller ones, or joining two modules into one. Code that does `from h.models import Annotation, Group, User` won't be broken by the reorganization
 
-### This doesn't mean every module is internal
+### Don't underscore modules just because their names are imported into `__init__.py`
 
-You might think that, since `Annotation`, `Group` and `User` are meant to be imported from `models/__init__.py` rather than from `models/annotation.py`, `models/group.py` and `models/user.py`, that `models/annotation.py`, `models/group.py` and `models/user.py` are actually internal and should have leading underscores. Don't think this, though, because it would mean that:
+If all of a module's public names are imported into the nearest `__init__.py` that **doesn't** mean the module is internal and should have a leading underscore in its filename. Just leave the module without a leading underscore.
 
-1. Every module in every package would have a leading underscore
-2. The leading underscores would no longer be helping us to distinguish between modules that contain public things and modules that only contain internal collaborators
+This is because packages that import public names into `__init__.py` tend to import the public names from _all_ of their modules. So if we marked the modules whose names are imported as internal, we'd end up marking _every_ module in the package as internal. The leading underscores would no longer be helping us to distinguish between modules that contain public things and modules that only contain internal collaborators. The underscores would just be visual noise, providing no information.
 
 ## We don't use `__all__`
 
