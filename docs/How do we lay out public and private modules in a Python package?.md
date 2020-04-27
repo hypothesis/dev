@@ -49,7 +49,8 @@ Generally there are three different types of package within an app:
    * View classes and view methods are public interface: Pyramid calls our views to get responses to requests
      * Exception views are also public interface: Pyramid calls these too
    * Custom view predicates (which get used in Pyramid `@view_config`'s) are public interface: Pyramid calls our view predicates to determine whether to call the view or not
-   * Helper functions that the views call are not public interface: these are only called by other code within the same package. They're not directly called by Pyramid
+
+    Helper functions that the views call are _not_ part of the public interface: these are only called by other code within the same package. They're not directly called by Pyramid
 
    So in the case of an `<APP>.views` package the leading underscores differentiate the views and other things that're registered with Pyramid, from internal helpers. The differentiation helps you to see what views, predicates, etc the app has without being distracted by all their collaborators.
 
