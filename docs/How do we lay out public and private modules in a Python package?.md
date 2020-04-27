@@ -79,7 +79,7 @@ class _FooCollaborator:
     ...
 ```
 
-With a close-collaborator like this the unit tests would normally work by calling the `foo()` view and only testing `_FooHelper` indirectly via the `foo()` view. A close collaborator like `_FooHelper` wouldn't normally be patched in the unit tests for the `foo()` view.
+With a close-collaborator like this the unit tests would normally work by calling the `foo()` view and only testing `_FooHelper` indirectly via the `foo()` view. A close collaborator like `_FooCollaborator` wouldn't normally be patched in the unit tests for the `foo()` view.
 
 Reasons **not** to do put a collaborator in-module:
 
