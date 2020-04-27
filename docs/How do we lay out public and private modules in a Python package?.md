@@ -83,7 +83,7 @@ With a close-collaborator like this the unit tests would normally work by callin
 
 Reasons **not** to do put a collaborator in-module:
 
-* If `_FooHelper` is called by anything outside of `views/foo.py`
+* If `_FooCollaborator` is called by anything outside of `views/foo.py`
 * If it would make either `views/foo.py` or its unit tests too long (lots of small collaborating files, rather than a few big ones, please)
 
 ## Importing names into an `__init__.py` file
