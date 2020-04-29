@@ -28,7 +28,7 @@ Pyramid [exception views](https://docs.pylonsproject.org/projects/pyramid/en/lat
 
 ## Importing names into `__init__.py` for convenience
 
-We often import all the names (classes etc) from a package into that package's `__init__.py` file. For example `h/models/__init__.py`:
+We often import all the names from a package into that package's `__init__.py` file. For example `h/models/__init__.py`:
 
 ```python
 from h.models.activation import Activation
