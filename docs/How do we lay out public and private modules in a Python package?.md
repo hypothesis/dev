@@ -1,95 +1,34 @@
-# How do we lay out public and internal modules in a Python package?
+# How do we lay out our Python packages?
 
-See also:
+Aims:
 
-* [Organization of views package is poor](https://github.com/hypothesis/lms/issues/1245), the original issue that led to this file
+1. Differente public interface from internal code, because it makes maintenance easier
 
-We have a very simple approach:
+2. Provide a place to put internal collaborators: they can be underscored (internal) names within a class or module, or underscored module or subpackage names within a package
 
-1. A "package" is any directory that contains an `__init__.py` file
+3. Avoid "util" or "helper" modules that tend to collect unrelated code together in one generic place, instead of keeping code close to where it's used
 
-2. The "public interface" of a class, module or package is all the names that're used by code outside of that class module or package
+Approach:
 
-   The calling code can be other code within the same app or it can be a third-party framework. For example Pyramid calls our view functions, so the view functions are part of the `<APP>.views` package's public interface.
+1. A "package" is any directory that contains an `__init__.py` file.
 
-3. Names that are part of the public interface of a class, module or package don't have leading underscores. Internal names that are not part of a class, module or package's public interface **do** have leading underscores.
+2. The "public interface" of a class, module or package is all the names that're used by code outside of that class, module or package.
 
-   For example:
+   * Some packages, like an `<APP>.views` package, contain code that gets called by a framework rather than by other parts of our own code. For example, Pyramid calls the view functions, predicates, etc in `<APP>.views`. **The rule applies to these packages in just the same way**: the public interface of `<APP>.views` package is all the names that're used by code outside of `<APP>.views`. The outside code in this case is Pyramid's code, not our own.
 
-   1. **Classes:** public attributes and methods of a class don't have leading underscores. Internal attributes and methods within a class do have leading underscores.
-   2. **Modules:** public classes, functions and other top-level names within a module don't have leading underscores. Internal attributes, methods and names within a module do have leading underscores.
-   3. **Packages:** public modules within a package don't have leading underscores on their filenames, e.g. `foo.py`. Internal modules within a package do have leading underscores, e.g. `_foo.py`. Similarly public subpackages have no leading underscore (`bar/`), internal subpackages do have a leading underscore (`_bar/`).
+3. Names that're internal to a class, module or package begin with leading underscores, names that're part of the public interface don't.
 
-## Aims
-
-The above approach:
-
-* Differentiates the public interface (that's meant to be called from outside of the package) from internal code.
-
-  Being able to easily see what is public and what is internal encourages better code design and makes the code easier to maintain. You can more easily see what a package is "about" if you can see its public interface and ignore internal code until you need to work on it. If you can see that something is internal, you know that it's not going to be used outside of its package. If you've changed a package's internal code but haven't changed its public interface, you know that you won't have broken any code outside of the package.
-
-* Provides a place to put internal close collaborators.
-
-  Not everything in the `<APP>.views` package is a view, not everything in the `<APP>.models` package is a model, etc. Sometimes the views/models/whatever need to call internal collaborator classes or functions to get their jobs done. We need a place to put these internal collaborators that's localised within the package or subpackage they belong to.
-
-* Avoids "util" or "helper" modules.
-
-  In the past we've used an `<APP>.util` package to contain "utilities" that don't seem to belong anywhere else. This is a terrible pattern because `<APP>.util` becomes an ill-defined grab-bag of all sorts of random stuff, and because anything in `<APP>.util` looks like it might be used anywhere in the code whereas in fact it's likely only used in one place: localization breaks down. We don't want any more `<APP>.util` packages.
-
-  Also in the past we've created local `helpers.py` modules or `helpers/` packages within packages to contain the utils or helpers just for that package. This isn't a good pattern either: it still ends up moving close collaborators away from the code that uses them, splitting functions that should live together in one module into separate modules by forcing the helper into `helpers.py`, or splitting modules that should live side-by-side in one package into separate packages by forcing the helper into a `helpers/` subpackage. It's also just annoying to always have to move everything into "helpers" modules.
-
-## Types of Package in an App
-
-Generally there are three different types of package within an app:
-
-1. Packages that contain code that gets imported and called by other packages within the same app (for example: `<APP>.models`). Here it's simple: the public interface of the package is all the names that get imported and used by code outside of that package
-
-2. Packages that contain code that gets called by a framework, usually Pyramid (for example: `<APP>.views`). Here it's a bit trickier: we define the public interface as all the things that get called _by Pyramid_. For example:
-
-   * View classes and view methods are public interface: Pyramid calls our views to get responses to requests
-     * Exception views are also public interface: Pyramid calls these too
-   * Custom view predicates (which get used in Pyramid `@view_config`'s) are public interface: Pyramid calls our view predicates to determine whether to call the view or not
-
-    Helper functions that the views call are _not_ part of the public interface: these are only called by other code within the same package. They're not directly called by Pyramid
-
-   So in the case of an `<APP>.views` package the leading underscores differentiate the views and other things that're registered with Pyramid, from internal helpers. The differentiation helps you to see what views, predicates, etc the app has without being distracted by all their collaborators.
-
-3. Some packages will be a bit of both (1) and (2)
+   For packages this means that internal module's file names begin with a leading underscore: `_foo.py`, and internal sub-package's folder names begin with a leading underscore: `_bar/`.
 
 ## Exception Views Module Naming
 
-Pyramid [exception views](https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/views.html#custom-exception-views) present a view-specific code layout issue: you'll probably want to put them in an `exceptions.py` file, but `exceptions.py` is the name that we use in all of our packages for the module that contains that package's exception classes. 
+Pyramid [exception views](https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/views.html#custom-exception-views) present a view-specific code layout issue: you'll probably want to put them in an `exceptions.py` file, but `exceptions.py` is the name that we use in all of our packages for the module that contains that package's exception classes.
 
-**Decision**: just put both custom exception classes (if the `views` package has any) and Pyramid exception views both together in `views/exceptions.py` (no leading underscore)
+**Decision**: just put both custom exception classes (if the `views` package has any) and Pyramid exception views both together in `views/exceptions.py` (no leading underscore).
 
-## In-module collaborators
+## Importing names into `__init__.py` for convenience
 
-Although you can put collaborators in their own `_bar.py` module alongside the module(s) that call them, if some collaborators are only used within one module it's also fine to just put them in that module:
-
-```python
-# views/foo.py
-
-from pyramid.view import view_config
-
-@view_config(...)
-def foo(request):
-    # Uses _FooCollaborator.
-    ...
-
-class _FooCollaborator:
-    ...
-```
-
-With a close-collaborator like this the unit tests would normally work by calling the `foo()` view and only testing `_FooHelper` indirectly via the `foo()` view. A close collaborator like `_FooCollaborator` wouldn't normally be patched in the unit tests for the `foo()` view.
-
-Reasons **not** to do put a collaborator in-module:
-
-* If `_FooCollaborator` is called by anything outside of `views/foo.py`
-* If it would make either `views/foo.py` or its unit tests too long (lots of small collaborating files, rather than a few big ones, please)
-
-## Importing names into an `__init__.py` file
-
-We often import all the names (classes etc) from a module into that module's `__init__.py` file. For example `h/models/__init__.py`:
+We often import all the names (classes etc) from a package into that package's `__init__.py` file. For example `h/models/__init__.py`:
 
 ```python
 from h.models.activation import Activation
@@ -98,26 +37,20 @@ from h.models.annotation_moderation import AnnotationModeration
 ...
 ```
 
-This is done for convenience:
+We do this so that:
 
-1. User code can just do `from h.models import Annotation, Group, User` instead of having to do `from h.models.annotation import Annotation` and `from h.models.group import Group` and `from h.models.user import User`
+1. User code can just do `from h.models import Annotation, Group, User` instead of having to do `from h.models.annotation import Annotation` and `from h.models.group import Group` and `from h.models.user import User` separately
 
-2. It makes it easier when you want to reorganize the code within the `h.models` package. For example renaming a module, splitting a large module into two smaller ones, or joining two modules into one. Code that does `from h.models import Annotation, Group, User` won't be broken by the reorganization
+2. Internally rearranging the `h.models` package is easier: moving names between modules and subpackages won't break any calling code
 
-### Don't underscore modules just because their names are imported into `__init__.py`
+## Don't underscore modules when you import their names into `__init__.py`
 
-If all of a module's public names are imported into the nearest `__init__.py` that **doesn't** mean the module is internal and should have a leading underscore in its filename. Just leave the module without a leading underscore.
-
-This is because packages that import public names into `__init__.py` tend to import the public names from _all_ of their modules. So if we marked the modules whose names are imported as internal, we'd end up marking _every_ module in the package as internal. The leading underscores would no longer be helping us to distinguish between modules that contain public things and modules that only contain internal collaborators. The underscores would just be visual noise, providing no information.
+If all of the names from `foo/bar.py` are imported into `foo/__init__.py`, **don't** rename `foo/bar.py` to `foo/_bar.py`. Doing so would result in all `foo/*.py` filenames getting leading underscores since `foo/__init__.py` likely imports the names from all of them. The underscores would no longer help distinguish modules that contain public things and modules that only contain internal collaborators.
 
 ## We don't use `__all__`
 
-PEP 8 [says](https://www.python.org/dev/peps/pep-0008/#public-and-internal-interfaces):
+We don't put `__all__`'s in our modules. We don't have any modules that're designed to be used via `from <module> import *`. And we haven't found any introspection benefits to `__all__`.
 
-> To better support introspection, modules should explicitly declare the names in their public API using the `__all__` attribute.
-
-We don't put `__all__`'s in our modules because we haven't found it to be useful. For example we don't have any modules that're designed to be used via `from <module> import *` (an `__all__` controls what names `import *` imports from a module). And we haven't found any introspection benefits to `__all__`.
-
-Instead we just put leading underscores on internal names, and no leading underscores on public names.
+Instead just put leading underscores on internal names, and no leading underscores on public names.
 
 If you ever have a need to make an underscored name public, or a non-underscored name internal, and you can't rename to add or remove the leading underscore, then use a docstring or code comment to say that the name is public or internal despite the (lack of) a leading underscore
