@@ -1,39 +1,140 @@
 #!/usr/bin/env python3
+
 import argparse
 import os
+import re
 import subprocess
+from collections import defaultdict
+from contextlib import contextmanager
+from functools import lru_cache
+from pathlib import Path
 
 
-def get_files():
-    files = (
-        subprocess.run(
-            ["git", "diff", "origin/master", "--name-only"],
-            check=True,
-            stdout=subprocess.PIPE,
-        )
-        .stdout.decode("utf8")
-        .split()
-    )
+def print_verbose(verbose, message):
+    if verbose:
+        print(message)
 
-    files = [f for f in files if f.endswith(".py")]
 
-    for f in files:
-        if f.startswith("tests/"):
-            continue
+@contextmanager
+def working_directory(path):
+    cwd = os.getcwd()
+    try:
+        os.chdir(path)
+        yield
+    finally:
+        os.chdir(cwd)
 
-        test_file = "tests/unit/" + os.path.splitext(f)[0] + "_test.py"
 
-        if test_file not in files:
-            files.append(test_file)
+class Project:
+    PY_EXTENSION = re.compile('.py$')
+    TEST_EXTENSION = re.compile('_test.py$')
 
-    files = [f for f in files if os.path.isfile(f)]
+    def __init__(self, root=None, match_tests=True):
+        if root is None:
+            root = os.getcwd()
 
-    test_files = [f for f in files if f.startswith("tests/unit/")]
-    functest_files = [f for f in files if f.startswith("tests/functional/")]
-    all_test_files = test_files + functest_files
-    src_files = [f for f in files if f not in all_test_files]
+        if not os.path.isdir(root):
+            raise EnvironmentError(f"Cannot find project root: {root}")
 
-    return files, src_files, test_files, functest_files, all_test_files
+        self.root = Path(os.path.abspath(root))
+
+        self.all_files = self._get_changed_files()
+        self.files = self._categorise(self.all_files)
+        if match_tests:
+            self._match_tests(self.files)
+
+    def _get_changed_files(self):
+        with working_directory(self.root):
+            files = (
+                subprocess.run(
+                    ["git", "diff", "origin/master", "--name-only"],
+                    check=True,
+                    stdout=subprocess.PIPE,
+                )
+                    .stdout.decode("utf8")
+                    .split()
+            )
+
+        return [os.path.join(self.root, f) for f in files if f.endswith(".py")]
+
+    def _categorise(self, files):
+        """Categories the files by what kind of thing they are."""
+        paths = {
+            'func_test': self.root / 'tests/functional',
+            'unit_test': self.root / 'tests' / self._unit_prefix(),
+            'source': self.root
+        }
+
+        results = defaultdict(set)
+        for file in files:
+            for path_type, prefix in paths.items():
+                if file.startswith(str(prefix)):
+                    results[path_type].add(file)
+                    break
+
+        return results
+
+    def _match_tests(self, files):
+        """Try and find tests that match files and vice versa."""
+
+        for file in files['source']:
+            test = self._test_for_file(file)
+            if os.path.exists(test):
+                self.all_files.append(str(test))
+                files['unit_test'].add(str(test))
+
+        for file in files['unit_test']:
+            source = self._file_for_test(file)
+            if os.path.exists(source):
+                self.all_files.append(str(source))
+                files['source'].add(str(source))
+
+    def _file_for_test(self, name):
+        unit_prefix = self._unit_prefix()
+
+        if unit_prefix == 'unit':
+            bare_name = os.path.relpath(name, self.root / 'tests/unit')
+        else:
+            bare_name = os.path.relpath(name, self.root / 'tests')
+
+        bare_name = self.TEST_EXTENSION.sub('.py', bare_name)
+
+        path = self.root / 'src' / bare_name
+
+        if not os.path.exists(path):
+            path = self.root / bare_name
+
+        return path
+
+    def _test_for_file(self, name):
+        bare_name = os.path.relpath(name, self.root)
+        if bare_name.startswith('src/'):
+            bare_name = bare_name[4:]
+
+        bare_name = self.PY_EXTENSION.sub('_test.py', bare_name)
+
+        unit_prefix = self._unit_prefix()
+        if unit_prefix == 'unit':
+            return self.root / 'tests/unit' / bare_name
+
+        return self.root / 'tests' / bare_name
+
+    @lru_cache(1)
+    def _unit_prefix(self):
+        path = self.root / 'tests/unit'
+        if os.path.isdir(path):
+            return 'unit'
+
+        # Looks like a non-standard one, time to guess
+        options = set(os.listdir(self.root / 'tests'))
+        options -= {'functional', 'common', '__pycache__'}
+        options = [os.path.join(self.root, 'tests', option) for option in options]
+        options = [option for option in options if os.path.isdir(option) and not option.startswith('.')]
+
+        if len(options) == 1:
+            return os.path.basename(options[0])
+
+        raise EnvironmentError(f'Cannot determine unit test dir. Options are: {options}')
 
 
 class Run:
@@ -76,35 +177,67 @@ def main():
         "without -t.",
     )
     parser.add_argument(
-        "-t",
-        "--tox",
-        action="store_true",
-        help="run commands in tox instead of directly",
+        "-t", "--tox",
+        action="store_true", help="Run commands in tox instead of directly",
     )
-    parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument(
+        "--no-lint",
+        action="store_true", help="Disable linting"
+    )
+    parser.add_argument(
+        "--no-coverage",
+        action="store_true", help="Disable coverage"
+    )
+    parser.add_argument(
+        "--no-match",
+        action="store_true", help="Don't try and match tests to source files"
+    )
+    parser.add_argument(
+        "-v",  "--verbose",
+        action="store_true", help="Verbose output"
+    )
 
     args = parser.parse_args()
 
-    files, src_files, test_files, functest_files, all_test_files = get_files()
+    project = Project(match_tests=not args.no_match)
 
-    if files:
+    src_files = project.files.get('source')
+    test_files = project.files.get('unit_test', set())
+    functest_files = project.files.get('func_test', set())
+    all_test_files = test_files | functest_files
+
+    if project.all_files:
         run = Run(args.tox, args.verbose)
 
-        run("format", "black", files)
+        run("format", "black", project.all_files)
 
-        if src_files:
-            run("lint", "pylint", src_files)
-            run("lint", "pycodestyle", src_files)
-            run("lint", "pydocstyle", src_files)
+        if not args.no_lint:
+            if project:
+                print_verbose(args.verbose, "Linting...")
+                run("lint", "pylint", src_files)
+                run("lint", "pycodestyle", src_files)
+                run("lint", "pydocstyle", src_files)
 
-        if all_test_files:
-            run("lint", "pylint", all_test_files, "--rcfile=tests/.pylintrc")
+            if all_test_files:
+                print_verbose(args.verbose, "Linting tests...")
+                run("lint", "pylint", all_test_files, "--rcfile=tests/.pylintrc")
 
         if test_files:
-            run("tests", "pytest", test_files)
+            print_verbose(args.verbose, "Run tests...")
+            run("tests", "coverage run -m pytest", test_files, "-v")
+
+            if not args.no_coverage:
+                run("coverage", "coverage combine", [])
+                run(
+                    "coverage", "coverage report", [],
+                    '--fail-under=0 --no-skip-covered --include '+','.join(project.all_files)
+                )
 
         if functest_files:
+            print_verbose(args.verbose, "Run functional tests...")
             run("functests", "pytest", functest_files)
+
+        print_verbose(args.verbose, "Done")
 
 
 if __name__ == "__main__":
