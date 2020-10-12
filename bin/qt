@@ -51,14 +51,14 @@ class Project:
                     check=True,
                     stdout=subprocess.PIPE,
                 )
-                    .stdout.decode("utf8")
-                    .split()
+                .stdout.decode("utf8")
+                .split()
             )
 
         return [os.path.join(self.root, f) for f in files if f.endswith(".py")]
 
     def _categorise(self, files):
-        """Categories the files by what kind of thing they are."""
+        """Categorise the files by what kind of thing they are."""
         paths = {
             'func_test': self.root / 'tests/functional',
             'unit_test': self.root / 'tests' / self._unit_prefix(),
@@ -178,23 +178,23 @@ def main():
     )
     parser.add_argument(
         "-t", "--tox",
-        action="store_true", help="Run commands in tox instead of directly",
+        action="store_true", help="run commands in tox instead of directly",
     )
     parser.add_argument(
         "--no-lint",
-        action="store_true", help="Disable linting"
+        action="store_true", help="disable linting"
     )
     parser.add_argument(
         "--no-coverage",
-        action="store_true", help="Disable coverage"
+        action="store_true", help="disable coverage"
     )
     parser.add_argument(
         "--no-match",
-        action="store_true", help="Don't try and match tests to source files"
+        action="store_true", help="don't try and match tests to source files"
     )
     parser.add_argument(
         "-v",  "--verbose",
-        action="store_true", help="Verbose output"
+        action="store_true", help="verbose output"
     )
 
     args = parser.parse_args()
