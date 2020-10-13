@@ -144,11 +144,13 @@ class StandardProject:
         """Run the linter(s) on all modified files."""
         if self.src_files:
             self.run("lint", "pylint", self.src_files)
-            self.run("lint", "pycodestyle", self.src_files)
-            self.run("lint", "pydocstyle", self.src_files)
 
         if self.test_files:
             self.run("lint", "pylint", self.test_files, "--rcfile=tests/.pylintrc")
+
+        if self.python_files:
+            self.run("lint", "pycodestyle", self.python_files)
+            self.run("lint", "pydocstyle", self.python_files)
 
     def run_unit_tests(self):
         """Run the unit tests for all modified files."""
