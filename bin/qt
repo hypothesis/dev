@@ -33,7 +33,17 @@ class StandardProject:
             .split()
         )
 
-        files = set(modified_files)
+        untracked_files = set(
+            subprocess.run(
+                ["git", "ls-files", "--others", "--exclude-standard"],
+                check=True,
+                stdout=subprocess.PIPE,
+            )
+            .stdout.decode("utf8")
+            .split()
+        )
+
+        files = modified_files.union(untracked_files)
 
         for f in modified_files:
             if self.is_src_file(f):
