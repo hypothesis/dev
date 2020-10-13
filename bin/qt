@@ -131,6 +131,21 @@ class StandardProject:
         self.run_functional_tests()
 
 
+class HProject(StandardProject):
+    @lru_cache()
+    def is_unit_test_file(self, filename):
+        """Return True if `filename` is a unit test file."""
+        return filename.startswith("tests/h")
+
+    def lint(self):
+        """Run the linter(s) on all modified files."""
+        if self.src_files:
+            self.run("lint", "flake8", self.src_files)
+
+        if self.test_files:
+            self.run("lint", "flake8", self.test_files)
+
+
 class Run:
     def __init__(self, tox, verbose):
         self._tox = tox
@@ -180,7 +195,12 @@ def main():
 
     args = parser.parse_args()
 
-    StandardProject(args.tox, args.verbose).run_all()
+    if os.path.isdir("h"):
+        ProjectClass = HProject
+    else:
+        ProjectClass = StandardProject
+
+    ProjectClass(args.tox, args.verbose).run_all()
 
 
 if __name__ == "__main__":
