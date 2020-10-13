@@ -2,38 +2,133 @@
 import argparse
 import os
 import subprocess
+from functools import lru_cache
 
 
-def get_files():
-    files = (
-        subprocess.run(
-            ["git", "diff", "origin/master", "--name-only"],
-            check=True,
-            stdout=subprocess.PIPE,
+class StandardProject:
+    def __init__(self, tox, verbose):
+        self.run = Run(tox, verbose)
+
+    @property
+    @lru_cache()
+    def files(self):
+        """
+        All files modified on this branch compared to master.
+
+        Includes both committed and uncommitted, staged and unstaged changes.
+
+        FIXME: This should also include untracked files.
+        """
+        return set(
+            subprocess.run(
+                ["git", "diff", "origin/master", "--name-only"],
+                check=True,
+                stdout=subprocess.PIPE,
+            )
+            .stdout.decode("utf8")
+            .split()
         )
-        .stdout.decode("utf8")
-        .split()
-    )
 
-    files = [f for f in files if f.endswith(".py")]
+    @lru_cache()
+    def is_python_file(self, filename):
+        """Return True if `filename` is a Python file."""
+        return filename.endswith(".py")
 
-    for f in files:
-        if f.startswith("tests/"):
-            continue
+    @lru_cache()
+    def is_src_file(self, filename):
+        """Return True if `filename` is a source file (as opposed to a test file)."""
+        return not self.is_test_file(filename)
 
-        test_file = "tests/unit/" + os.path.splitext(f)[0] + "_test.py"
+    @lru_cache()
+    def is_test_file(self, filename):
+        """Return True if `filename` is a test file."""
+        return filename.startswith("tests/")
 
-        if test_file not in files:
-            files.append(test_file)
+    @lru_cache()
+    def is_unit_test_file(self, filename):
+        """Return True if `filename` is a unit test file."""
+        return filename.startswith("tests/unit")
 
-    files = [f for f in files if os.path.isfile(f)]
+    @lru_cache()
+    def is_functest_file(self, filename):
+        """Return True if `filename` is a functional test file."""
+        return filename.startswith("tests/functional")
 
-    test_files = [f for f in files if f.startswith("tests/unit/")]
-    functest_files = [f for f in files if f.startswith("tests/functional/")]
-    all_test_files = test_files + functest_files
-    src_files = [f for f in files if f not in all_test_files]
+    @property
+    @lru_cache()
+    def python_files(self):
+        """All Python files modified on this branch compared to master."""
+        return set(f for f in self.files if self.is_python_file(f))
 
-    return files, src_files, test_files, functest_files, all_test_files
+    @property
+    @lru_cache()
+    def src_files(self):
+        """All source files modified on this branch compared to master."""
+        return set(f for f in self.python_files if self.is_src_file(f))
+
+    @property
+    @lru_cache()
+    def test_files(self):
+        """All test files modified on this branch compared to master."""
+        return set(f for f in self.python_files if self.is_test_file(f))
+
+    @property
+    @lru_cache()
+    def unit_test_files(self):
+        """All unit test files modified on this branch compared to master."""
+        return set(f for f in self.python_files if self.is_unit_test_file(f))
+
+    @property
+    @lru_cache()
+    def func_test_files(self):
+        """All functional test files modified on this branch compared to master."""
+        return set(f for f in self.python_files if self.is_functest_file(f))
+
+    @lru_cache()
+    def test_filename(self, filename):
+        """
+        Return the test filename for the given source `filename`.
+
+        This doesn't check that the returned test filename actually exists: it
+        just returns the path to where the test file _should_ be according to
+        the project's file layout conventions.
+        """
+        return "tests/unit/" + os.path.splitext(filename)[0] + "_test.py"
+
+    def format(self):
+        """Run the formatter(s) on all modified files."""
+        if not self.python_files:
+            return
+
+        # FIXME: This should also run isort.
+        self.run("format", "black", self.python_files)
+
+    def lint(self):
+        """Run the linter(s) on all modified files."""
+        if self.src_files:
+            self.run("lint", "pylint", self.src_files)
+            self.run("lint", "pycodestyle", self.src_files)
+            self.run("lint", "pydocstyle", self.src_files)
+
+        if self.test_files:
+            self.run("lint", "pylint", self.test_files, "--rcfile=tests/.pylintrc")
+
+    def run_unit_tests(self):
+        """Run the unit tests for all modified files."""
+        if self.unit_test_files:
+            self.run("tests", "pytest", self.unit_test_files)
+
+    def run_functional_tests(self):
+        """Run all modified functional test files."""
+        if self.func_test_files:
+            self.run("functests", "pytest", self.func_test_files)
+
+    def run_all(self):
+        """Run all the checks for all the modified files."""
+        self.format()
+        self.lint()
+        self.run_unit_tests()
+        self.run_functional_tests()
 
 
 class Run:
@@ -85,26 +180,7 @@ def main():
 
     args = parser.parse_args()
 
-    files, src_files, test_files, functest_files, all_test_files = get_files()
-
-    if files:
-        run = Run(args.tox, args.verbose)
-
-        run("format", "black", files)
-
-        if src_files:
-            run("lint", "pylint", src_files)
-            run("lint", "pycodestyle", src_files)
-            run("lint", "pydocstyle", src_files)
-
-        if all_test_files:
-            run("lint", "pylint", all_test_files, "--rcfile=tests/.pylintrc")
-
-        if test_files:
-            run("tests", "pytest", test_files)
-
-        if functest_files:
-            run("functests", "pytest", functest_files)
+    StandardProject(args.tox, args.verbose).run_all()
 
 
 if __name__ == "__main__":
