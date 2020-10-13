@@ -78,37 +78,37 @@ class StandardProject:
                 if os.path.exists(src_filename):
                     files.add(src_filename)
 
-        return files
+        return sorted(files)
 
     @property
     @lru_cache()
     def python_files(self):
         """All Python files modified on this branch compared to master."""
-        return set(f for f in self.files if self.is_python_file(f))
+        return [f for f in self.files if self.is_python_file(f)]
 
     @property
     @lru_cache()
     def src_files(self):
         """All source files modified on this branch compared to master."""
-        return set(f for f in self.python_files if self.is_src_file(f))
+        return [f for f in self.python_files if self.is_src_file(f)]
 
     @property
     @lru_cache()
     def test_files(self):
         """All test files modified on this branch compared to master."""
-        return set(f for f in self.python_files if self.is_test_file(f))
+        return [f for f in self.python_files if self.is_test_file(f)]
 
     @property
     @lru_cache()
     def unit_test_files(self):
         """All unit test files modified on this branch compared to master."""
-        return set(f for f in self.python_files if self.is_unit_test_file(f))
+        return [f for f in self.python_files if self.is_unit_test_file(f)]
 
     @property
     @lru_cache()
     def func_test_files(self):
         """All functional test files modified on this branch compared to master."""
-        return set(f for f in self.python_files if self.is_functest_file(f))
+        return [f for f in self.python_files if self.is_functest_file(f)]
 
     @lru_cache()
     def test_filename(self, filename):
