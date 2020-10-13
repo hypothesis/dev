@@ -129,8 +129,8 @@ class StandardProject:
         if not self.python_files:
             return
 
-        # FIXME: This should also run isort.
         self.run("format", "black", self.python_files)
+        self.run("format", "isort --quiet --atomic", self.python_files)
 
     def lint(self):
         """Run the linter(s) on all modified files."""
