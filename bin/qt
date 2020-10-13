@@ -45,8 +45,6 @@ class StandardProject:
         If a source file has been modified then its corresponding unit test
         file will be included even if the unit test file itself hasn't been
         modified, and vice-versa.
-
-        FIXME: This should also include untracked files.
         """
         modified_files = set(
             subprocess.run(
