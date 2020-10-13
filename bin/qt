@@ -9,6 +9,31 @@ class StandardProject:
     def __init__(self, tox, verbose):
         self.run = Run(tox, verbose)
 
+    @lru_cache()
+    def is_python_file(self, filename):
+        """Return True if `filename` is a Python file."""
+        return filename.endswith(".py")
+
+    @lru_cache()
+    def is_src_file(self, filename):
+        """Return True if `filename` is a source file (as opposed to a test file)."""
+        return not self.is_test_file(filename)
+
+    @lru_cache()
+    def is_test_file(self, filename):
+        """Return True if `filename` is a test file."""
+        return filename.startswith("tests/")
+
+    @lru_cache()
+    def is_unit_test_file(self, filename):
+        """Return True if `filename` is a unit test file."""
+        return filename.startswith("tests/unit")
+
+    @lru_cache()
+    def is_functest_file(self, filename):
+        """Return True if `filename` is a functional test file."""
+        return filename.startswith("tests/functional")
+
     @property
     @lru_cache()
     def files(self):
@@ -56,31 +81,6 @@ class StandardProject:
                     files.add(src_filename)
 
         return files
-
-    @lru_cache()
-    def is_python_file(self, filename):
-        """Return True if `filename` is a Python file."""
-        return filename.endswith(".py")
-
-    @lru_cache()
-    def is_src_file(self, filename):
-        """Return True if `filename` is a source file (as opposed to a test file)."""
-        return not self.is_test_file(filename)
-
-    @lru_cache()
-    def is_test_file(self, filename):
-        """Return True if `filename` is a test file."""
-        return filename.startswith("tests/")
-
-    @lru_cache()
-    def is_unit_test_file(self, filename):
-        """Return True if `filename` is a unit test file."""
-        return filename.startswith("tests/unit")
-
-    @lru_cache()
-    def is_functest_file(self, filename):
-        """Return True if `filename` is a functional test file."""
-        return filename.startswith("tests/functional")
 
     @property
     @lru_cache()
