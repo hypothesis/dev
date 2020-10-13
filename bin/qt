@@ -185,6 +185,11 @@ class StandardProject:
 
 
 class HProject(StandardProject):
+    @staticmethod
+    def is_current_project():
+        """True if this class should be used for the current project."""
+        return os.path.isdir("h")
+
     @lru_cache()
     def is_unit_test_file(self, filename):
         """Return True if `filename` is a unit test file."""
@@ -248,12 +253,14 @@ def main():
 
     args = parser.parse_args()
 
-    if os.path.isdir("h"):
-        ProjectClass = HProject
-    else:
-        ProjectClass = StandardProject
+    current_project_class = StandardProject
 
-    ProjectClass(args.tox, args.verbose).run_all()
+    for project_class in [HProject]:
+        if project_class.is_current_project():
+            current_project_class = project_class
+            break
+
+    current_project_class(args.tox, args.verbose).run_all()
 
 
 if __name__ == "__main__":
