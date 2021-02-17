@@ -1,0 +1,35 @@
+{
+    "ssl": true,
+    "apps": {
+        "Via HTML (dev)": {
+            "type": "viahtml",
+            "prefix": "http://localhost:9085/proxy",
+            "env": "dev"
+        },
+        "Via HTML (QA)": {
+            "type": "viahtml",
+            "prefix": "https://qa-viahtml3.hypothes.is/proxy",
+            "env": "qa"
+        },
+        "Via HTML (Prod)": {
+            "type": "viahtml",
+            "prefix": "https://viahtml3.hypothes.is/proxy",
+            "env": "prod"
+        },
+        "Via 3 (dev)": {
+            "type": "via3",
+            "prefix": "http://localhost:9083",
+            "env": "dev"
+        },
+        "Via 3 (QA)": {
+            "type": "via3",
+            "prefix": "https://qa-via3.hypothes.is",
+            "env": "qa"
+        },
+        "Via 3 (Prod)": {
+            "type": "via3",
+            "prefix": "https://via3.hypothes.is",
+            "env": "prod"
+        }
+    }
+}
