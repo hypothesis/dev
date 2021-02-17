@@ -61,7 +61,7 @@
         {% if via_urls %}
             <ul>
                 {% for url in via_urls %}
-                    <li><a href="{{ url }}" target="{{ app }}">{{ url | truncate(120) }}</a></li>
+                    <li><a href="{{ url }}">{{ url | truncate(120) }}</a></li>
                 {% endfor %}
             </ul>
 
