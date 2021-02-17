@@ -6,6 +6,11 @@
             "prefix": "http://localhost:9085/proxy",
             "env": "dev"
         },
+        "Via HTML (dev, SSL)": {
+            "type": "viahtml",
+            "prefix": "https://localhost:9086/proxy",
+            "env": "dev"
+        },
         "Via HTML (QA)": {
             "type": "viahtml",
             "prefix": "https://qa-viahtml3.hypothes.is/proxy",

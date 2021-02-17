@@ -3,8 +3,11 @@
         <style>
             body {
                 padding: 20px;
-                font-size: 1.1em;
                 font-family: sans-serif;
+            }
+
+            h1 {
+                margin-bottom: 0.2em;
             }
 
             /* Form */
@@ -34,7 +37,9 @@
 
     <body>
         <h1>Via Test Harness</h1>
-        <p>Make sure you have filled out the secrets in '<code>config.json</code>'.</p>
+        {% if not via_urls %}
+            <p>Make sure you have filled out the secrets in '<code>config.json</code>'.</p>
+        {% endif %}
         <form>
             <label for="app">Application</label>
             <select name="app">
