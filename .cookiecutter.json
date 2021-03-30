@@ -1,0 +1,14 @@
+{
+    "project_name": "Hypothesis Developer Tools",
+    "description": "This repo is a place to put developer tools (scripts for automating development tasks etc).",
+    "project_slug": "dev",
+    "pkg_name": "dev",
+    "options": {
+        "disable_replay": [
+            "README.md",
+            "setup.cfg",
+            "src/dev/__init__.py"
+        ]
+    },
+    "_template": "gh:hypothesis/h-cookiecutter-pypackage"
+}
