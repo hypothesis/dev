@@ -1,0 +1,17 @@
+{
+    "beautifulsoup4": {
+        "python_versions": {
+            "3.8": "Mentioned in docs"
+        }
+    },
+    "ipython": {
+        "python_versions": {
+            "3.8": "IPython 7.17+ requires Python version 3.7 and _above_."
+        }
+    },
+    "uwsgi": {
+        "python_versions": {
+            "3.8": "Evidence of testing in travis files."
+        }
+    }
+}

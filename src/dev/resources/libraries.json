@@ -1,0 +1,30 @@
+{
+    "h_vialib": {
+        "git_url": "git@github.com:hypothesis/h-vialib.git",
+        "on_pypi": true
+    },
+    "h_matchers": {
+        "git_url": "git@github.com:hypothesis/h-matchers.git",
+        "on_pypi": true
+    },
+    "h_checkmatelib": {
+        "git_url": "git@github.com:hypothesis/checkmatelib.git",
+        "on_pypi": true
+    },
+    "pyramid_sanity": {
+        "git_url": "git@github.com:hypothesis/pyramid-sanity.git",
+        "on_pypi": true
+    },
+    "h_pyramid_sentry": {
+        "git_url": "git@github.com:hypothesis/h-pyramid-sentry.git",
+        "on_pypi": true
+    },
+    "h_api": {
+        "git_url": "git@github.com:hypothesis/h-api.git",
+        "on_pypi": true
+    },
+    "h_cookiecutter_pypackage": {
+        "git_url": "git@github.com:hypothesis/h-cookiecutter-pypackage.git",
+        "on_pypi": false
+    }
+}
