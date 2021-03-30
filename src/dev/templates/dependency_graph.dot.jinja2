@@ -1,0 +1,35 @@
+digraph G {
+    rankdir=LR;
+    overlap=false;
+    splines=true;
+    sep="+4";
+
+    {% if not root.dependencies %}
+        "No dependencies found"
+    {% endif %}
+
+    subgraph packages {
+        node[style=filled, shape=box];
+        {% for package in packages.values() %}
+            "{{ package.normalized_name }}" [
+                fillcolor={{color_for(package)}},
+                label="{{ package.name }}\n{{ max_version(package) }}{% if package.undeclared_versions %}!!{% endif %}"
+            ];
+        {% endfor %}
+    }
+
+    {% for dep_name, dep_types in root.dependencies.items() -%}
+        {% for dep_type in dep_types -%}
+            "{{ dep_type }}" -> "{{ dep_name }}";
+        {% endfor %}
+    {% endfor %}
+
+
+    {% for package in packages.values() -%}
+        {% if "3.9" not in package.python_versions %}
+        {% for dep in package.dependencies -%}
+            "{{ package.normalized_name }}" -> "{{ dep }}"
+        {% endfor %}
+        {% endif %}
+    {% endfor %}
+}

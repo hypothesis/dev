@@ -1,0 +1,23 @@
+{
+    "h": {
+        "git_url": "git@github.com:hypothesis/h.git"
+    },
+    "lms": {
+        "git_url": "git@github.com:hypothesis/lms.git"
+    },
+    "bouncer": {
+        "git_url": "git@github.com:hypothesis/bouncer.git"
+    },
+    "via3": {
+        "git_url": "git@github.com:hypothesis/via3.git"
+    },
+    "viahtml": {
+        "git_url": "git@github.com:hypothesis/viahtml.git"
+    },
+    "checkmate": {
+        "git_url": "git@github.com:hypothesis/checkmate.git"
+    },
+    "h_periodic": {
+        "git_url": "git@github.com:hypothesis/h-periodic.git"
+    }
+}
