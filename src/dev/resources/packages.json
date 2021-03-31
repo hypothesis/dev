@@ -13,5 +13,10 @@
         "python_versions": {
             "3.8": "Evidence of testing in travis files."
         }
+    },
+    "passlib": {
+         "python_versions": {
+             "3.9": "Evidence of testing in tox: https://foss.heptapod.net/python-libs/passlib/-/blob/branch/stable/tox.ini"
+         }
     }
 }
