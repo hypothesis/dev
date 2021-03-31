@@ -4,6 +4,7 @@ To run:
 
  * tox -e tests --run-command "python bin/graph_dependencies.py"
 """
+import os
 
 from dev.deps.graph import Graph
 from dev.deps.tree import DepTree, TreeProcessing
@@ -51,6 +52,9 @@ def _graph_lib(library):
 
 
 if __name__ == "__main__":
+    # Ensure our output dirs exist
+    os.makedirs(CHECKOUT_DIR, exist_ok=True)
+
     for lib in Library.get_all():
         _graph_lib(lib)
 
