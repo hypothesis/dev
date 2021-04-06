@@ -18,5 +18,16 @@
          "python_versions": {
              "3.9": "Evidence of testing in tox: https://foss.heptapod.net/python-libs/passlib/-/blob/branch/stable/tox.ini"
          }
+    },
+    "pyramid_jinja2": {
+         "python_versions": {
+             "3.7": "Undeclared support mentioned in docs for version 2.8",
+             "3.9": "Tested locally and _mostly_ works apart from some scaffolding stuff I don't think we use"
+         }
+    },
+    "pyramid_services": {
+        "python_versions": {
+            "3.9": "Tested locally and seems fine."
+        }
     }
 }
